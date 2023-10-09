@@ -1,0 +1,239 @@
+<?php
+
+require "connection.php";
+session_start();
+if (!isset($_SESSION["admin"])) {
+?>
+
+
+
+    <!DOCTYPE html>
+
+    <html>
+
+    <head>
+        <title>Freelance | Manage GIGS</title>
+
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" href="resources/logo/logoh.png" />
+
+        <link rel="stylesheet" href="bootstrap.css" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.2/font/bootstrap-icons.css">
+        <link rel="stylesheet" href="style.css" />
+    </head>
+
+    <body>
+
+        <div class="container-fluid">
+            <div class="row">
+
+                <?php
+                require "AdminPageHader.php";
+
+                ?>
+
+                <div class="col-12 col-lg-10">
+                    <div class="row">
+
+                        <div class="col-12 mt-3 mb-3 text-dark">
+                            <h2 class="fw-bold">Gigs</h2>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="row g-1 m-2">
+
+                                <div class="col-12 mt-3 mb-2">
+                                    <div class="row text-center">
+
+                                        <div class="col-1 bg-light pt-2 pb-2 ">
+                                            <span class=" fw-bold text-dark">ID</span>
+                                        </div>
+
+                                        <div class="col-lg-2 bg-light pt-2 pb-2 d-none d-lg-block">
+                                            <span class=" fw-bold text-dark">Image</span>
+                                        </div>
+
+                                        <div class="col-4 col-lg-3 bg-light pt-2 pb-2 ">
+                                            <span class=" fw-bold text-dark">Title</span>
+                                        </div>
+
+                                        <div class="col-4 col-lg-2 bg-light pt-2 pb-2">
+                                            <span class="fw-bold text-dark ">Creat Date</span>
+                                        </div>
+
+                                        <div class="col-lg-2 bg-light pt-2 pb-2 d-none d-lg-block">
+                                            <span class="fw-bold text-dark ">Orders</span>
+                                        </div>
+
+                                        <div class="col-3 col-lg-2 bg-light pt-2 pb-2">
+
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <?php
+
+                                if (isset($_GET["page"])) {
+                                    $pageno = $_GET["page"];
+                                } else {
+                                    $pageno = 1;
+                                }
+
+                                $m = Database::search("SELECT * FROM `gig` ORDER BY `id` DESC");
+                                $d = $m->num_rows;
+                                $result_per_page = 6;
+                                $number_of_pages = ceil($d / $result_per_page);
+                                $page_first_result = ((int)$pageno - 1) * $result_per_page;
+
+                                $gig = Database::search("SELECT * FROM `gig` LIMIT " . $result_per_page . " OFFSET " . $page_first_result . " ");
+                                $gig_num = $gig->num_rows;
+
+                                for ($x = 1; $gig_num >= $x; $x++) {
+                                    $gig_data = $gig->fetch_assoc();
+
+                                    $image = Database::search("SELECT * FROM `gig_image` WHERE `id`='" . $gig_data["gig_image_id"] . "'");
+                                    $image_data = $image->fetch_assoc();
+
+                                    $order = Database::search("SELECT * FROM `order` WHERE `gigId`='" . $gig_data["id"] . "'");
+                                    $order_num = $order->num_rows;
+
+                                ?>
+
+                                    <div class="col-12 mt-3 mb-2">
+                                        <div class="row text-center">
+
+                                            <div class="col-1 bg-light pt-2 pb-2 ">
+                                                <span class=" fw-bold text-black-50"><?php echo $gig_data["id"]; ?></span>
+                                            </div>
+
+                                            <div class="col-lg-2 bg-light pt-2 pb-2 d-none d-lg-block">
+                                                <?php
+                                                if ($image->num_rows == 0) {
+                                                ?>
+                                                    <img src="resources/logo/user_icon.png" width="80px" height="50px">
+                                                <?php
+                                                } else {
+                                                ?>
+                                                    <img src="<?php echo $image_data["url1"] ?>" width="80px" height="50px">
+                                                <?php
+                                                }
+                                                ?>
+                                            </div>
+
+                                            <div class="col-4 col-lg-3 bg-light pt-2 pb-2 ">
+                                                <span class=" fw-bold text-black-50"><?php echo $gig_data["title"]; ?></span>
+                                            </div>
+
+                                            <div class="col-4 col-lg-2 bg-light pt-2 pb-2">
+                                                <span class="fw-bold text-black-50"><?php echo $gig_data["date_time"]; ?></span>
+                                            </div>
+
+                                            <div class="col-lg-2 bg-light pt-2 pb-2 d-none d-lg-block">
+                                                <span class="fw-bold text-black-50"><?php echo $order_num; ?></span>
+                                            </div>
+
+                                            <div class="col-3 col-lg-2 bg-light pt-2 pb-2">
+
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                <?php
+                                }
+
+                                ?>
+
+                            </div>
+                        </div>
+
+                        <?php
+
+
+                        if ($number_of_pages != 1) {
+
+                        ?>
+
+                            <div class="row">
+                                <nav aria-label="Page navigation example">
+                                    <ul class="pagination justify-content-center">
+
+                                        <?php if ($pageno <= 1) {
+                                        ?>
+                                            <li class="page-item disabled">
+                                                <a class="page-link">Previous</a>
+                                            </li>
+                                        <?php
+                                        } else {
+                                        ?>
+                                            <li class="page-item">
+                                                <a href="<?php echo "?page=" . ($pageno - 1) . ""; ?>" class="page-link">Previous</a>
+                                            </li>
+                                            <?php
+                                        }
+
+                                        for ($page = 1; $page <= $number_of_pages; $page++) {
+                                            if ($page == $pageno) {
+                                            ?>
+                                                <li class="page-item active"><a class="page-link" href="<?php echo "?page=" . ($page) . ""; ?>"><?php echo $page; ?></a></li>
+                                            <?php
+                                            } else {
+                                            ?>
+                                                <li class="page-item"><a class="page-link" href="<?php echo "?page=" . ($page) . ""; ?>"><?php echo $page; ?></a></li>
+
+                                            <?php
+                                            }
+                                        }
+
+                                        if ($pageno >= $number_of_pages) {
+                                            ?>
+                                            <li class="page-item disabled">
+                                                <a class="page-link" href="#">Next</a>
+                                            </li>
+                                        <?php
+                                        } else {
+                                        ?>
+                                            <li class="page-item">
+                                                <a class="page-link" href="<?php echo "?page=" . ($pageno + 1) . ""; ?>">Next</a>
+                                            </li>
+                                        <?php
+
+                                        }
+                                        ?>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
+
+                        <?php
+                        }
+                        ?>
+
+                    </div>
+                </div>
+
+                <?php
+                require "AdminFooter.php";
+                ?>
+
+            </div>
+        </div>
+    </body>
+
+    </html>
+
+<?php
+
+} else {
+?>
+
+    <script>
+        window.location = "AdminSignIn.php";
+    </script>
+<?php
+}
+
+?>
